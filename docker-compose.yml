@@ -9,6 +9,7 @@ services:
       DB_HOST: mysql
       DB_PASSWORD: secret
       DB_USERNAME: laravel
+      DB_PORT: 3306
       APP_DEBUG: 'true'
       APP_ENV: local
       APP_KEY: ayGbuqVXJakHHvMTZCjKqzhVqMNsHMQs
