@@ -53,4 +53,19 @@ class BookTest extends TestCase
         $this->assertDatabaseMissing('books', ['id' => $book->id]);
         $response->assertRedirect('/books');
     }
+
+    public function testBookCanBeUpdated()
+    {
+        $book = factory(Book::class)->create();
+
+        $updatedData = [
+            'title' => 'Updated Title',
+            'author' => 'Updated Author',
+        ];
+
+        $response = $this->withoutMiddleware()->put("/books/{$book->id}", $updatedData);
+
+        $this->assertDatabaseHas('books', $updatedData);
+        $response->assertRedirect('/books');
+    }
 }
