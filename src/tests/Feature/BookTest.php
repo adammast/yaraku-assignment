@@ -40,7 +40,17 @@ class BookTest extends TestCase
         $response = $this->withoutMiddleware()->post('/books', []);
 
         $response->assertSessionHasErrors(['title', 'author']);
-        
+
         $this->assertEquals(0, Book::count());
+    }
+
+    public function testBookCanBeDeleted()
+    {
+        $book = factory(Book::class)->create();
+
+        $response = $this->withoutMiddleware()->delete("/books/{$book->id}");
+
+        $this->assertDatabaseMissing('books', ['id' => $book->id]);
+        $response->assertRedirect('/books');
     }
 }
