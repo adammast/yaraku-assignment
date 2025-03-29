@@ -4,7 +4,7 @@
 
 @section('content')
     <h1 class="mb-4">Books</h1>
-    <table class="table table-striped">
+    <table id="booksTable" class="table table-striped">
         <thead class="table-dark">
             <tr>
                 <th>Title</th>
@@ -32,4 +32,21 @@
             @endforeach
         </tbody>
     </table>
+@endsection
+
+@section('scripts')
+    <script>
+        $(document).ready(function() {
+            $('#booksTable').DataTable({
+                "paging": true,
+                "searching": true,
+                "ordering": true,
+                "info": true, // Show info text (e.g., "Showing 1 to 10 of 50 books")
+                "lengthMenu": [5, 10, 25, 50, 100], // Dropdown for number of items per page
+                "columnDefs": [
+                    { "orderable": false, "targets": [2, 3] } // Disable sorting for Edit & Delete columns
+                ]
+            });
+        });
+    </script>
 @endsection
