@@ -124,10 +124,7 @@ class BookTest extends TestCase
      */
     public function testExportCsv()
     {
-        $books = factory(Book::class, 3)->create([
-            'title' => 'Test Book',
-            'author' => 'Author Name'
-        ]);
+        $books = factory(Book::class, 3)->create();
 
         $response = $this->get('/export/csv');
 
@@ -149,6 +146,68 @@ class BookTest extends TestCase
     }
 
     /**
+     * Test that exporting only the title column works correctly in the CSV export.
+     *
+     * This test ensures that when the request specifies the 'title' column, 
+     * only the title is included in the CSV export.
+     *
+     * @return void
+     */
+    public function testExportCsvWithTitleColumnOnly()
+    {
+        $books = factory(Book::class, 3)->create();
+
+        // Make the request to export the CSV with only the 'title' column
+        $response = $this->get('/export/csv?columns[]=title');
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+        $response->assertHeader('Content-Disposition', 'attachment; filename="books.csv"');
+
+        $content = $response->streamedContent();
+
+        // Check that the content includes only the 'title' column header
+        $this->assertStringContainsString('title', $content);
+        $this->assertStringNotContainsString('author', $content);
+
+        foreach ($books as $book) {
+            // Check that the content includes the book titles
+            $this->assertStringContainsString($book->title, $content);
+        }
+    }
+
+    /**
+     * Test that exporting only the author column works correctly in the CSV export.
+     *
+     * This test ensures that when the request specifies the 'author' column, 
+     * only the author is included in the CSV export.
+     *
+     * @return void
+     */
+    public function testExportCsvWithAuthorColumnOnly()
+    {
+        $books = factory(Book::class, 3)->create();
+
+        // Make the request to export the CSV with only the 'author' column
+        $response = $this->get('/export/csv?columns[]=author');
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+        $response->assertHeader('Content-Disposition', 'attachment; filename="books.csv"');
+
+        $content = $response->streamedContent();
+
+        // Check that the content includes only the 'author' column header
+        $this->assertStringContainsString('author', $content);
+        $this->assertStringNotContainsString('title', $content);
+
+        foreach ($books as $book) {
+            // Check that the content includes the book authors
+            $this->assertStringContainsString($book->author, $content);
+        }
+    }
+
+    /**
      * Test that XML export returns a valid XML file with the correct structure.
      *
      * This test ensures that the exportXml method generates a valid XML response 
@@ -158,10 +217,7 @@ class BookTest extends TestCase
      */
     public function testExportXml()
     {
-        $books = factory(Book::class, 3)->create([
-            'title' => 'Test Book',
-            'author' => 'Author Name'
-        ]);
+        $books = factory(Book::class, 3)->create();
 
         $response = $this->get('/export/xml');
 
@@ -176,6 +232,62 @@ class BookTest extends TestCase
         foreach ($books as $book) {
             $this->assertStringContainsString("<title>{$book->title}</title>", $xmlContent);
             $this->assertStringContainsString("<author>{$book->author}</author>", $xmlContent);
+        }
+    }
+
+    /**
+     * Test that exporting only the title column works correctly in the XML export.
+     *
+     * This test ensures that when the request specifies the 'title' column, 
+     * only the title is included in the XML export.
+     *
+     * @return void
+     */
+    public function testExportXmlWithTitleColumnOnly()
+    {
+        $books = factory(Book::class, 3)->create();
+
+        // Make the request to export the XML with only the 'title' column
+        $response = $this->get('/export/xml?columns[]=title');
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/xml');
+        $response->assertHeader('Content-Disposition', 'attachment; filename="books.xml"');
+
+        $content = $response->getContent();
+
+        // Check that the XML includes only the 'title' tag for each book
+        foreach ($books as $book) {
+            $this->assertStringContainsString("<title>{$book->title}</title>", $content);
+            $this->assertStringNotContainsString("<author>{$book->author}</author>", $content);
+        }
+    }
+
+    /**
+     * Test that exporting only the author column works correctly in the XML export.
+     *
+     * This test ensures that when the request specifies the 'author' column, 
+     * only the author is included in the XML export.
+     *
+     * @return void
+     */
+    public function testExportXmlWithAuthorColumnOnly()
+    {
+        $books = factory(Book::class, 3)->create();
+
+        // Make the request to export the XML with only the 'author' column
+        $response = $this->get('/export/xml?columns[]=author');
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/xml');
+        $response->assertHeader('Content-Disposition', 'attachment; filename="books.xml"');
+
+        $content = $response->getContent();
+
+        // Check that the XML includes only the 'author' tag for each book
+        foreach ($books as $book) {
+            $this->assertStringContainsString("<author>{$book->author}</author>", $content);
+            $this->assertStringNotContainsString("<title>{$book->title}</title>", $content);
         }
     }
 }
