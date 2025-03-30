@@ -35,30 +35,27 @@ class BookController extends Controller
     }
 
     // Delete a book
-    public function destroy($id)
+    public function destroy(Book $book)
     {
-        $book = Book::findOrFail($id);
         $book->delete();
-
         return redirect()->route('books.index');
     }
 
     // Show form to edit book details
-    public function edit($id)
+    public function edit(Book $book)
     {
-        $book = Book::findOrFail($id);
         return view('books.edit', compact('book'));
     }
 
+
     // Update an existing book in the database then redirect to the index page
-    public function update(Request $request, $id)
+    public function update(Request $request, Book $book)
     {
         $request->validate([
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
         ]);
 
-        $book = Book::findOrFail($id);
         $book->update($request->all());
 
         return redirect()->route('books.index');
