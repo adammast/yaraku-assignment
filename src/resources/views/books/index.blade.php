@@ -32,6 +32,39 @@
             @endforeach
         </tbody>
     </table>
+    <button id="exportCsvBtn" class="btn btn-success">Export CSV</button>
+    <button id="exportXmlBtn" class="btn btn-primary">Export XML</button>
+
+    <!-- Column Selection Modal -->
+    <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exportModalLabel">Select Columns to Export</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="exportForm">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="title" id="columnTitle" checked>
+                            <label class="form-check-label" for="columnTitle">Title</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="author" id="columnAuthor" checked>
+                            <label class="form-check-label" for="columnAuthor">Author</label>
+                        </div>
+                        <input type="hidden" id="exportType">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmExport">Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -47,6 +80,32 @@
                     { "orderable": false, "targets": [2, 3] } // Disable sorting for Edit & Delete columns
                 ]
             });
+        });
+
+        // Show modal when export button is clicked
+        $('#exportCsvBtn').click(function () {
+            $('#exportType').val('csv');
+            $('#exportModal').modal('show');
+        });
+
+        $('#exportXmlBtn').click(function () {
+            $('#exportType').val('xml');
+            $('#exportModal').modal('show');
+        });
+
+        // Handle Export
+        $('#confirmExport').click(function () {
+            let columns = [];
+            if ($('#columnTitle').is(':checked')) columns.push('title');
+            if ($('#columnAuthor').is(':checked')) columns.push('author');
+
+            let exportType = $('#exportType').val();
+            let url = exportType === 'csv' ? "{{ route('export.csv') }}" : "{{ route('export.xml') }}";
+
+            // Redirect with selected columns
+            window.location.href = url + "?columns[]=" + columns.join('&columns[]=');
+
+            $('#exportModal').modal('hide');
         });
     </script>
 @endsection

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BookController extends Controller
 {
@@ -61,5 +62,49 @@ class BookController extends Controller
         $book->update($request->all());
 
         return redirect()->route('books.index');
+    }
+
+    // Export CSV
+    public function exportCsv(Request $request)
+    {
+        $columns = $request->input('columns', ['title', 'author']);
+
+        $books = Book::all($columns);
+
+        $response = new StreamedResponse(function () use ($books, $columns) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, $columns);
+
+            foreach ($books as $book) {
+                fputcsv($handle, $book->only($columns));
+            }
+
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', 'attachment; filename="books.csv"');
+
+        return $response;
+    }
+
+    // Export XML
+    public function exportXml(Request $request)
+    {
+        $columns = $request->input('columns', ['title', 'author']);
+        $books = Book::all($columns);
+
+        $xml = new \SimpleXMLElement('<books/>');
+
+        foreach ($books as $book) {
+            $bookElement = $xml->addChild('book');
+            foreach ($columns as $column) {
+                $bookElement->addChild($column, htmlspecialchars($book->$column));
+            }
+        }
+
+        return response($xml->asXML(), 200)
+            ->header('Content-Type', 'application/xml')
+            ->header('Content-Disposition', 'attachment; filename="books.xml"');
     }
 }
