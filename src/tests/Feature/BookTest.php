@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\Book;
@@ -12,13 +13,16 @@ class BookTest extends TestCase
 
     public function testBooksAreDisplayed()
     {
-        factory(Book::class, 3)->create();
+        $books = factory(Book::class, 3)->create();
 
         $response = $this->get('/books');
 
         $response->assertStatus(200)
-            ->assertViewIs('books.index')
-            ->assertSee(Book::first()->title);
+            ->assertViewIs('books.index');
+
+        foreach ($books as $book) {
+            $response->assertSee($book->title);
+        }
     }
 
     public function testBookCanBeCreated()
@@ -48,7 +52,7 @@ class BookTest extends TestCase
     {
         $book = factory(Book::class)->create();
 
-        $response = $this->withoutMiddleware()->delete("/books/{$book->id}");
+        $response = $this->withoutMiddleware(VerifyCsrfToken::class)->delete("/books/{$book->id}");
 
         $this->assertDatabaseMissing('books', ['id' => $book->id]);
         $response->assertRedirect('/books');
@@ -63,7 +67,7 @@ class BookTest extends TestCase
             'author' => 'Updated Author',
         ];
 
-        $response = $this->withoutMiddleware()->put("/books/{$book->id}", $updatedData);
+        $response = $this->withoutMiddleware(VerifyCsrfToken::class)->put("/books/{$book->id}", $updatedData);
 
         $this->assertDatabaseHas('books', $updatedData);
         $response->assertRedirect('/books');
